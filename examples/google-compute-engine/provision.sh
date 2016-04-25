@@ -1,5 +1,7 @@
 #!/bin/bash -x
 
+export WEAVE_PASSWORD=ee456fce79405ce095bb0f118f11c6473384a1a6
+
 cat > /etc/yum.repos.d/docker.repo <<-'EOF'
 [dockerrepo]
 name=Docker Repository
@@ -29,7 +31,9 @@ fi
 
 /usr/bin/weave version
 
-/usr/bin/weave launch --ipalloc-init consensus=3
+/usr/bin/weave launch \
+  --ipalloc-init consensus=3 \
+  --trusted-subnets 10.128.0.0/20,10.132.0.0/20,10.140.0.0/20,10.142.0.0/20
 
 ## Find nodes with `demo-weave` tag in an instance group
 
@@ -56,3 +60,5 @@ fi
 /usr/bin/scope version
 
 /usr/bin/scope launch
+
+setenforce 0 ## https://github.com/coreos/rkt/issues/1727
