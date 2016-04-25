@@ -1,0 +1,58 @@
+#!/bin/bash -x
+
+cat > /etc/yum.repos.d/docker.repo <<-'EOF'
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/$releasever/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+EOF
+
+yum --assumeyes --quiet install docker-engine
+service docker start
+
+if ! [ -x /usr/bin/weave ] ; then
+  echo "Installing current version of Weave Net"
+  curl --silent --location http://git.io/weave --output /usr/bin/weave
+  chmod +x /usr/bin/weave
+  mkdir -p /opt/cni/bin /etc/cni/net.d
+  /usr/bin/weave setup
+fi
+
+if ! [ -d /opt/rkt-v1.4.0 ] ; then
+  curl --silent --location https://github.com/coreos/rkt/releases/download/v1.4.0/rkt-v1.4.0.tar.gz \
+    | tar xzv -C /opt
+  groupadd rkt
+  /opt/rkt-v1.4.0/scripts/setup-data-dir.sh
+fi
+
+/usr/bin/weave version
+
+/usr/bin/weave launch --ipalloc-init consensus=3
+
+## Find nodes with `demo-weave` tag in an instance group
+
+list_weave_peers_in_group() {
+  ## There doesn't seem to be a native way to obtain instances with certain tags, so we use awk
+  gcloud compute instance-groups list-instances $1 --uri --quiet \
+    | xargs -n1 gcloud compute instances describe \
+        --format='value(tags.items[], name, networkInterfaces[0].accessConfigs[0].natIP)' \
+    | awk '$1 ~ /(^|\;)demo-weave($|\;).*/ && $2 ~ /^demo-.*$/ { print $2 }'
+}
+
+## This is very basic way of doing Weave Net peer discovery, one could potentially implement a pair of
+## systemd units that write and watch an environment file and call `weave connect` when needed...
+gcloud compute instance-groups managed wait-until-stable demo-node-group --quiet
+/usr/bin/weave connect \
+  $(list_weave_peers_in_group demo-node-group)
+
+if ! [ -x /usr/bin/scope ] ; then
+  echo "Installing current version of Weave Scope"
+  curl --silent --location http://git.io/scope --output /usr/bin/scope
+  chmod +x /usr/bin/scope
+fi
+
+/usr/bin/scope version
+
+/usr/bin/scope launch
