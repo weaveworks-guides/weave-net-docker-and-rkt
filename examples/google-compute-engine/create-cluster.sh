@@ -5,7 +5,7 @@ gcloud compute networks create 'demo-net' \
 
 gcloud compute firewall-rules create 'demo-extfw' \
   --network 'demo-net' \
-  --allow 'tcp:22,tcp:4040,tcp:6783,udp:6783' \
+  --allow 'tcp:22,tcp:4040,tcp:6783,udp:6783,tcp:9090' \
   --target-tags 'demo-ext' \
   --description 'External access for SSH and Weave Scope user interface'
 
