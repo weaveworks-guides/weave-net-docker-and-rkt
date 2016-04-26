@@ -88,7 +88,7 @@ version: "2"
 services:
 
   hello:
-    hostname: identiorca.weave.local
+    hostname: hello.weave.local
     image: thepixelmonsterzapp/hello
     restart: always
     environment:
@@ -96,7 +96,7 @@ services:
     ports: [ "0.0.0.0:80:9090" ]
 
   monsterz-den:
-    hostname: dnmonster.weave.local
+    hostname: monsterz-den.weave.local
     image: thepixelmonsterzapp/monsterz-den
     restart: always
 
