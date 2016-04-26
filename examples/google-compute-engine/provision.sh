@@ -52,6 +52,8 @@ if ! [ -x /usr/bin/scope ] ; then
   chmod +x /usr/bin/scope
 fi
 
+eval $(weave env)
+
 /usr/bin/scope version
 
 /usr/bin/scope launch
@@ -83,4 +85,5 @@ if ! [ -d /apps ] ; then
   mkdir -p /apps
   $curl https://raw.githubusercontent.com/ThePixelMonsterzApp/infra/master/docker-compose-with-weave-net.yml \
     --output /apps/docker-compose.yml
+  docker-compose -p myapp -f /apps/docker-compose.yml up -d
 mkdir
