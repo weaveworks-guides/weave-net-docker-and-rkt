@@ -12,6 +12,6 @@ list_weave_peers_in_group() {
     | awk '$1 ~ /(^|\;)demo-weave($|\;).*/ && $2 ~ /^demo-.*$/ { print $3 }'
 }
 
-export WEAVE_PASSWORD=ee456fce79405ce095bb0f118f11c6473384a1a6 WEAVE_DEBUG=1
+export WEAVE_PASSWORD=ee456fce79405ce095bb0f118f11c6473384a1a6
 
 weave launch --ipalloc-init observer $(list_weave_peers_in_group demo-node-group)
