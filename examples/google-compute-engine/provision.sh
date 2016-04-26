@@ -1,5 +1,7 @@
 #!/bin/bash -x
 
+curl="curl --silent --location"
+
 cat > /etc/yum.repos.d/docker.repo <<-'EOF'
 [dockerrepo]
 name=Docker Repository
@@ -14,7 +16,7 @@ service docker start
 
 if ! [ -x /usr/bin/weave ] ; then
   echo "Installing current version of Weave Net"
-  curl --silent --location http://git.io/weave --output /usr/bin/weave
+  $curl http://git.io/weave --output /usr/bin/weave
   chmod +x /usr/bin/weave
   mkdir -p /opt/cni/bin /etc/cni/net.d
   /usr/bin/weave setup
@@ -46,7 +48,7 @@ gcloud compute instance-groups managed wait-until-stable demo-node-group --quiet
 
 if ! [ -x /usr/bin/scope ] ; then
   echo "Installing current version of Weave Scope"
-  curl --silent --location http://git.io/scope --output /usr/bin/scope
+  $curl http://git.io/scope --output /usr/bin/scope
   chmod +x /usr/bin/scope
 fi
 
@@ -56,7 +58,7 @@ fi
 
 
 if ! [ -d /opt/rkt-v1.4.0 ] ; then
-  curl --silent --location https://github.com/coreos/rkt/releases/download/v1.4.0/rkt-v1.4.0.tar.gz \
+  $curl https://github.com/coreos/rkt/releases/download/v1.4.0/rkt-v1.4.0.tar.gz \
     | tar xzv -C /opt
   groupadd rkt
   /opt/rkt-v1.4.0/scripts/setup-data-dir.sh
@@ -69,3 +71,16 @@ if ! [ -d /opt/rkt-v1.4.0 ] ; then
 fi
 
 setenforce 0 ## https://github.com/coreos/rkt/issues/1727
+
+
+if ! [ -x /usr/bin/docker-compose ] ; then
+  $curl https://github.com/docker/compose/releases/download/1.7.0/docker-compose-Linux-x86_64 \
+    --output /usr/bin/docker-compose
+  chmod +x /usr/bin/docker-compose
+fi
+
+if ! [ -d /apps ] ; then
+  mkdir -p /apps
+  $curl https://raw.githubusercontent.com/ThePixelMonsterzApp/infra/master/docker-compose-with-weave-net.yml \
+    --output /apps/docker-compose.yml
+mkdir
