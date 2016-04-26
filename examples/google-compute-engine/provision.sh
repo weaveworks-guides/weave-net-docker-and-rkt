@@ -1,7 +1,5 @@
 #!/bin/bash -x
 
-export WEAVE_PASSWORD=ee456fce79405ce095bb0f118f11c6473384a1a6
-
 cat > /etc/yum.repos.d/docker.repo <<-'EOF'
 [dockerrepo]
 name=Docker Repository
@@ -22,12 +20,7 @@ if ! [ -x /usr/bin/weave ] ; then
   /usr/bin/weave setup
 fi
 
-if ! [ -d /opt/rkt-v1.4.0 ] ; then
-  curl --silent --location https://github.com/coreos/rkt/releases/download/v1.4.0/rkt-v1.4.0.tar.gz \
-    | tar xzv -C /opt
-  groupadd rkt
-  /opt/rkt-v1.4.0/scripts/setup-data-dir.sh
-fi
+export WEAVE_PASSWORD=ee456fce79405ce095bb0f118f11c6473384a1a6
 
 /usr/bin/weave version
 
@@ -60,5 +53,19 @@ fi
 /usr/bin/scope version
 
 /usr/bin/scope launch
+
+
+if ! [ -d /opt/rkt-v1.4.0 ] ; then
+  curl --silent --location https://github.com/coreos/rkt/releases/download/v1.4.0/rkt-v1.4.0.tar.gz \
+    | tar xzv -C /opt
+  groupadd rkt
+  /opt/rkt-v1.4.0/scripts/setup-data-dir.sh
+  ln -s /opt/rkt-v1.4.0/rkt /usr/bin
+  mkdir -p /etc/rkt/net.d /usr/lib/rkt/plugins/net
+  ln -s /etc/cni/net.d/* /etc/rkt/net.d
+  docker exec weaveplugin cat plugin \
+    | tee /usr/lib/rkt/plugins/net/weave-net /usr/lib/rkt/plugins/net/weave-ipam
+  chmod +x /usr/lib/rkt/plugins/net/weave-net /usr/lib/rkt/plugins/net/weave-ipam
+fi
 
 setenforce 0 ## https://github.com/coreos/rkt/issues/1727
