@@ -68,7 +68,8 @@ if ! [ -d /opt/rkt-v1.4.0 ] ; then
   mkdir -p /etc/rkt/net.d /usr/lib/rkt/plugins/net
   ln -s /etc/cni/net.d/* /etc/rkt/net.d
   docker exec weaveplugin cat plugin \
-    | tee /usr/lib/rkt/plugins/net/weave-net /usr/lib/rkt/plugins/net/weave-ipam
+    | tee /usr/lib/rkt/plugins/net/weave-net /usr/lib/rkt/plugins/net/weave-ipam \
+    | cat > /dev/null
   chmod +x /usr/lib/rkt/plugins/net/weave-net /usr/lib/rkt/plugins/net/weave-ipam
 fi
 
@@ -81,9 +82,28 @@ if ! [ -x /usr/bin/docker-compose ] ; then
   chmod +x /usr/bin/docker-compose
 fi
 
-if ! [ -d /apps ] ; then
-  mkdir -p /apps
-  $curl https://raw.githubusercontent.com/ThePixelMonsterzApp/infra/master/docker-compose-with-weave-net.yml \
-    --output /apps/docker-compose.yml
-  docker-compose -p myapp -f /apps/docker-compose.yml up -d
-mkdir
+cat > /etc/docker-compose.yml <<-'EOF'
+version: "2"
+
+services:
+
+  hello:
+    hostname: identiorca.weave.local
+    image: thepixelmonsterzapp/hello
+    restart: always
+    environment:
+      USE_IP_ADDR: "1"
+    ports: [ "0.0.0.0:9090:9090" ]
+
+  monsterz-den:
+    hostname: dnmonster.weave.local
+    image: thepixelmonsterzapp/monsterz-den
+    restart: always
+
+  redis:
+    hostname: redis.weave.local
+    image: redis:3
+    restart: always
+EOF
+
+docker-compose -p myapp -f /etc/docker-compose.yml up -d
