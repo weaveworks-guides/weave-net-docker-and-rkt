@@ -93,7 +93,7 @@ services:
     restart: always
     environment:
       USE_IP_ADDR: "1"
-    ports: [ "0.0.0.0:9090:9090" ]
+    ports: [ "0.0.0.0:80:9090" ]
 
   monsterz-den:
     hostname: dnmonster.weave.local
